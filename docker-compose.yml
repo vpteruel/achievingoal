@@ -1,0 +1,44 @@
+version: "3.5"
+
+services:
+
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+    cap_drop:
+      - NET_RAW
+
+  sqldata:
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    environment:
+      - "ACCEPT_EULA=Y"
+      - "MSSQL_PID=Developer"
+      - "MSSQL_SA_PASSWORD=abc123##"
+    ports:
+      - "1433:1433"
+    cap_drop:
+      - NET_RAW
+    volumes: 
+     - "./scripts/:/scripts/"
+    command: 
+     - /bin/bash
+     - -c 
+     - |
+       /opt/mssql/bin/sqlservr &
+       sleep 19
+       /opt/mssql-tools/bin/sqlcmd -U sa -P abc123## -l 30 -e -i /scripts/db/achievingoal_db.sql
+       sleep infinity
+  
+  #mockServer:
+  #  image: mockserver/mockserver:mockserver-5.11.1
+  #  ports:
+  #    - 1080:1080
+  #  cap_drop:
+  #    - NET_RAW
+  #  environment:
+  #    MOCKSERVER_INITIALIZATION_JSON_PATH: /config/initializer.json
+  #  volumes:
+  #    - type: bind
+  #      source: .
+  #      target: /config
